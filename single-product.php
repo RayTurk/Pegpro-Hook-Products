@@ -94,51 +94,52 @@ function custom_product_description_section()
 /**
  * Custom function to display related products as a slider on mobile.
  */
-function custom_related_products_slider() {
-    global $product;
+function custom_related_products_slider()
+{
+  global $product;
 
-    $upsell_ids = $product->get_upsell_ids();
+  $upsell_ids = $product->get_upsell_ids();
 
-    if ( empty( $upsell_ids ) ) {
-        return;
+  if (empty($upsell_ids)) {
+    return;
+  }
+
+  $args = array(
+    'post_type'      => 'product',
+    'post__in'       => $upsell_ids,
+    'posts_per_page' => -1,
+    'orderby'        => 'post__in',
+  );
+
+  $upsell_posts = get_posts($args);
+
+  if ($upsell_posts) {
+    echo '<section class="upsells products related-products-slider-container">';
+    echo '<h2>' . esc_html__('Related Products', 'woocommerce') . '</h2>';
+
+    echo '<div class="related-products-slider">';
+    // Swiper container
+    echo '<div class="swiper-container"><div class="swiper-wrapper">';
+
+    foreach ($upsell_posts as $upsell_post) {
+      setup_postdata($GLOBALS['post'] = &$upsell_post);
+      echo '<div class="swiper-slide">';
+      wc_get_template_part('content', 'product');
+      echo '</div>';
     }
 
-    $args = array(
-        'post_type'      => 'product',
-        'post__in'       => $upsell_ids,
-        'posts_per_page' => -1,
-        'orderby'        => 'post__in',
-    );
+    wp_reset_postdata();
 
-    $upsell_posts = get_posts( $args );
+    echo '</div>'; // close swiper-wrapper
 
-    if ( $upsell_posts ) {
-        echo '<section class="upsells products related-products-slider-container">';
-        echo '<h2>' . esc_html__( 'Related Products', 'woocommerce' ) . '</h2>';
+    // Add navigation buttons
+    echo '<div class="swiper-button-next"></div>';
+    echo '<div class="swiper-button-prev"></div>';
 
-        echo '<div class="related-products-slider">';
-        // Swiper container
-        echo '<div class="swiper-container"><div class="swiper-wrapper">';
-
-        foreach ( $upsell_posts as $upsell_post ) {
-            setup_postdata( $GLOBALS['post'] =& $upsell_post );
-            echo '<div class="swiper-slide">';
-            wc_get_template_part( 'content', 'product' );
-            echo '</div>';
-        }
-
-        wp_reset_postdata();
-
-        echo '</div>'; // close swiper-wrapper
-
-        // Add navigation buttons
-        echo '<div class="swiper-button-next"></div>';
-        echo '<div class="swiper-button-prev"></div>';
-
-        echo '</div>'; // close swiper-container
-        echo '</div>'; // close .related-products-slider
-        echo '</section>';
-    }
+    echo '</div>'; // close swiper-container
+    echo '</div>'; // close .related-products-slider
+    echo '</section>';
+  }
 }
 
 get_header(); ?>
@@ -185,6 +186,18 @@ get_header(); ?>
             width: 100% !important;
             float: none !important;
             padding: 0 !important;
+
+            ul {
+              @media screen and (max-width: 768px) {
+                padding-left: 0 !important;
+              }
+
+              li {
+                @media screen and (max-width: 768px) {
+                  margin-left: 0 !important;
+                }
+              }
+            }
           }
 
           #main-content {
@@ -1177,13 +1190,16 @@ get_header(); ?>
 
             /* Swiper JS will set display: flex on this element */
             .related-products-slider .swiper-wrapper {
-              display: flex; /* This overrides the grid layout on mobile */
+              display: flex;
+              /* This overrides the grid layout on mobile */
               gap: 0;
             }
 
             .related-products-slider .swiper-slide {
-              width: 100%; /* A single slide takes the full width */
-              flex-shrink: 0; /* Prevent slide from shrinking */
+              width: 100%;
+              /* A single slide takes the full width */
+              flex-shrink: 0;
+              /* Prevent slide from shrinking */
             }
 
             .related-products-slider .swiper-button-next,
@@ -1195,7 +1211,7 @@ get_header(); ?>
               height: 40px;
               background-color: rgba(255, 255, 255, 0.9);
               border-radius: 50%;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
               color: #333;
               position: absolute;
               top: 50%;
@@ -1203,6 +1219,10 @@ get_header(); ?>
               z-index: 10;
               cursor: pointer;
               transition: background-color 0.2s ease;
+
+              svg {
+                height: 1rem;
+              }
             }
 
             .related-products-slider .swiper-button-next:hover,
@@ -1213,6 +1233,7 @@ get_header(); ?>
             .related-products-slider .swiper-button-prev {
               left: 10px;
             }
+
             .related-products-slider .swiper-button-next {
               right: 10px;
             }
@@ -1221,18 +1242,6 @@ get_header(); ?>
             .related-products-slider .swiper-button-next:after,
             .related-products-slider .swiper-button-prev:after {
               display: none;
-            }
-
-            .related-products-slider .swiper-button-prev::before,
-            .related-products-slider .swiper-button-next::before {
-              font-family: 'Font Awesome 6 Free';
-              font-weight: 900;
-            }
-            .related-products-slider .swiper-button-prev::before {
-              content: '\f053'; /* fa-chevron-left */
-            }
-            .related-products-slider .swiper-button-next::before {
-              content: '\f054'; /* fa-chevron-right */
             }
           }
         </style>
@@ -1372,7 +1381,7 @@ get_header(); ?>
             text.includes('straight') && text.includes('hook') && text.includes('size') ||
             text.includes('hook') && text.includes('shape'))) {
           if (isMultipack) {
-            stepLabel = 'step 2. select desired multipack shape combination';
+            stepLabel = 'Step 2. Select Desired Multipack Shape Combination';
           } else {
             stepLabel = 'Step 2: Select Desired Hook Shape';
           }
@@ -1412,10 +1421,6 @@ get_header(); ?>
       function updateDimmedStates() {
         const selectedItem = materialTypeList.querySelector('.selected');
         const allItems = materialTypeList.querySelectorAll('li.variable-item.button-variable-item');
-
-        allItems.forEach(item => {
-          item.classList.toggle('variation-dimmed', !!selectedItem && !item.classList.contains('selected'));
-        });
       }
 
       // One event listener for all clicks inside variation list
