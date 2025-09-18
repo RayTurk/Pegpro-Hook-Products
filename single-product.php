@@ -56,8 +56,9 @@ remove_action('woocommerce_after_single_product_summary', 'woocommerce_cross_sel
 // Add custom product description section with priority 15 (after main content, before upsells)
 add_action('woocommerce_after_single_product_summary', 'custom_product_description_section', 15);
 
-// Keep default upsells but rename the heading
-add_action('woocommerce_after_single_product_summary', 'rename_upsells_heading', 14);
+// Display related products as a slider instead of default upsells
+remove_action('woocommerce_after_single_product_summary', 'woocommerce_upsell_display', 15);
+add_action('woocommerce_after_single_product_summary', 'custom_related_products_slider', 15);
 
 
 /**
@@ -89,15 +90,55 @@ function custom_product_description_section()
   }
 }
 
+
 /**
- * Custom function to rename upsells heading to "Related Products"
+ * Custom function to display related products as a slider on mobile.
  */
-function rename_upsells_heading()
-{
-  // Filter to change upsells heading text
-  add_filter('woocommerce_product_upsells_products_heading', function ($heading) {
-    return 'Related Products';
-  });
+function custom_related_products_slider() {
+    global $product;
+
+    $upsell_ids = $product->get_upsell_ids();
+
+    if ( empty( $upsell_ids ) ) {
+        return;
+    }
+
+    $args = array(
+        'post_type'      => 'product',
+        'post__in'       => $upsell_ids,
+        'posts_per_page' => -1,
+        'orderby'        => 'post__in',
+    );
+
+    $upsell_posts = get_posts( $args );
+
+    if ( $upsell_posts ) {
+        echo '<section class="upsells products related-products-slider-container">';
+        echo '<h2>' . esc_html__( 'Related Products', 'woocommerce' ) . '</h2>';
+
+        echo '<div class="related-products-slider">';
+        // Swiper container
+        echo '<div class="swiper-container"><div class="swiper-wrapper">';
+
+        foreach ( $upsell_posts as $upsell_post ) {
+            setup_postdata( $GLOBALS['post'] =& $upsell_post );
+            echo '<div class="swiper-slide">';
+            wc_get_template_part( 'content', 'product' );
+            echo '</div>';
+        }
+
+        wp_reset_postdata();
+
+        echo '</div>'; // close swiper-wrapper
+        // Add navigation buttons
+        echo '<div class="swiper-button-next"></div>';
+        echo '<div class="swiper-button-prev"></div>';
+        // Add pagination
+        echo '<div class="swiper-pagination"></div>';
+        echo '</div>'; // close swiper-container
+        echo '</div>'; // close .related-products-slider
+        echo '</section>';
+    }
 }
 
 get_header(); ?>
@@ -108,6 +149,7 @@ get_header(); ?>
     <div id="content-area" class="clearfix">
       <div id="left-area">
 
+        <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
         <style>
           footer .et_builder_inner_content,
           header .et_builder_inner_content {
@@ -1105,6 +1147,90 @@ get_header(); ?>
               transform: translate(-50%, -50%) rotate(360deg);
             }
           }
+
+          /* == Related Products Slider == */
+          .related-products-slider-container {
+            position: relative;
+          }
+
+          /* Default: Desktop Grid Layout */
+          .related-products-slider .swiper-wrapper {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+          }
+
+          .related-products-slider .swiper-slide {
+            width: 100%;
+          }
+
+          /* Hide Swiper UI on desktop */
+          .related-products-slider .swiper-button-next,
+          .related-products-slider .swiper-button-prev,
+          .related-products-slider .swiper-pagination {
+            display: none;
+          }
+
+          /* Mobile: Slider Layout */
+          @media (max-width: 768px) {
+            .related-products-slider .swiper-container {
+              overflow: hidden;
+              margin: 0 -16px;
+              padding: 0 16px 40px 16px;
+            }
+
+            /* Swiper JS will set display: flex on this element */
+            .related-products-slider .swiper-wrapper {
+              display: flex;
+              gap: 0;
+            }
+
+            .related-products-slider .swiper-slide {
+              width: 80%;
+              max-width: 280px;
+              flex-shrink: 0;
+            }
+
+            /* Show and style Swiper UI on mobile */
+            .related-products-slider .swiper-button-next,
+            .related-products-slider .swiper-button-prev,
+            .related-products-slider .swiper-pagination {
+              display: flex;
+            }
+
+            .related-products-slider .swiper-button-next,
+            .related-products-slider .swiper-button-prev {
+              color: #1a1a1a;
+              background: #fff;
+              border-radius: 50%;
+              width: 40px;
+              height: 40px;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+              top: 50%;
+              transform: translateY(-70%);
+            }
+            .related-products-slider .swiper-button-next:after,
+            .related-products-slider .swiper-button-prev:after {
+              font-size: 18px;
+              font-weight: 700;
+            }
+
+            .related-products-slider .swiper-pagination {
+              bottom: 0;
+            }
+
+            .related-products-slider .swiper-pagination-bullet {
+              background: #649aaa;
+              opacity: 0.5;
+            }
+
+            .related-products-slider .swiper-pagination-bullet-active {
+              opacity: 1;
+            }
+          }
         </style>
         <?php
         /**
@@ -1138,6 +1264,7 @@ get_header(); ?>
   </div> <!-- .container -->
 </div> <!-- #main-content -->
 
+<script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 <script>
   // Simple script for step labels functionality
   document.addEventListener('DOMContentLoaded', function() {
@@ -1319,6 +1446,41 @@ get_header(); ?>
           });
         }
       });
+    }
+
+    // Related Products Slider Initialization
+    const relatedSliderContainer = document.querySelector('.related-products-slider .swiper-container');
+    if (relatedSliderContainer) {
+      let relatedSlider;
+
+      const initSlider = () => {
+        // Activate slider only on screens smaller than 768px
+        if (window.innerWidth < 768 && !relatedSlider) {
+          relatedSlider = new Swiper(relatedSliderContainer, {
+            slidesPerView: 'auto',
+            spaceBetween: 16,
+            grabCursor: true,
+            pagination: {
+              el: '.related-products-slider .swiper-pagination',
+              clickable: true,
+            },
+            navigation: {
+              nextEl: '.related-products-slider .swiper-button-next',
+              prevEl: '.related-products-slider .swiper-button-prev',
+            },
+          });
+        } else if (window.innerWidth >= 768 && relatedSlider) {
+          // Destroy slider on larger screens
+          relatedSlider.destroy(true, true);
+          relatedSlider = undefined;
+        }
+      };
+
+      // Run on load
+      initSlider();
+
+      // Rerun on resize
+      window.addEventListener('resize', initSlider);
     }
   });
 </script>
