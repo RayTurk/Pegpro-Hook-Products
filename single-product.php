@@ -130,11 +130,6 @@ function custom_related_products_slider() {
         wp_reset_postdata();
 
         echo '</div>'; // close swiper-wrapper
-        // Add navigation buttons
-        echo '<div class="swiper-button-next"></div>';
-        echo '<div class="swiper-button-prev"></div>';
-        // Add pagination
-        echo '<div class="swiper-pagination"></div>';
         echo '</div>'; // close swiper-container
         echo '</div>'; // close .related-products-slider
         echo '</section>';
@@ -1167,68 +1162,21 @@ get_header(); ?>
             width: 100%;
           }
 
-          /* Hide Swiper UI on desktop */
-          .related-products-slider .swiper-button-next,
-          .related-products-slider .swiper-button-prev,
-          .related-products-slider .swiper-pagination {
-            display: none;
-          }
-
           /* Mobile: Slider Layout */
           @media (max-width: 768px) {
             .related-products-slider .swiper-container {
               overflow: hidden;
-              margin: 0 -16px;
-              padding: 0 16px 40px 16px;
             }
 
             /* Swiper JS will set display: flex on this element */
             .related-products-slider .swiper-wrapper {
-              display: flex;
+              display: flex; /* This overrides the grid layout on mobile */
               gap: 0;
             }
 
             .related-products-slider .swiper-slide {
-              width: 80%;
-              max-width: 280px;
-              flex-shrink: 0;
-            }
-
-            /* Show and style Swiper UI on mobile */
-            .related-products-slider .swiper-button-next,
-            .related-products-slider .swiper-button-prev,
-            .related-products-slider .swiper-pagination {
-              display: flex;
-            }
-
-            .related-products-slider .swiper-button-next,
-            .related-products-slider .swiper-button-prev {
-              color: #1a1a1a;
-              background: #fff;
-              border-radius: 50%;
-              width: 40px;
-              height: 40px;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-              top: 50%;
-              transform: translateY(-70%);
-            }
-            .related-products-slider .swiper-button-next:after,
-            .related-products-slider .swiper-button-prev:after {
-              font-size: 18px;
-              font-weight: 700;
-            }
-
-            .related-products-slider .swiper-pagination {
-              bottom: 0;
-            }
-
-            .related-products-slider .swiper-pagination-bullet {
-              background: #649aaa;
-              opacity: 0.5;
-            }
-
-            .related-products-slider .swiper-pagination-bullet-active {
-              opacity: 1;
+              width: 100%; /* A single slide takes the full width */
+              flex-shrink: 0; /* Prevent slide from shrinking */
             }
           }
         </style>
@@ -1457,17 +1405,10 @@ get_header(); ?>
         // Activate slider only on screens smaller than 768px
         if (window.innerWidth < 768 && !relatedSlider) {
           relatedSlider = new Swiper(relatedSliderContainer, {
-            slidesPerView: 'auto',
+            loop: true,
+            slidesPerView: 1,
             spaceBetween: 16,
             grabCursor: true,
-            pagination: {
-              el: '.related-products-slider .swiper-pagination',
-              clickable: true,
-            },
-            navigation: {
-              nextEl: '.related-products-slider .swiper-button-next',
-              prevEl: '.related-products-slider .swiper-button-prev',
-            },
           });
         } else if (window.innerWidth >= 768 && relatedSlider) {
           // Destroy slider on larger screens
