@@ -1151,7 +1151,7 @@ get_header(); ?>
           /* Default: Desktop Grid Layout */
           .related-products-slider .swiper-wrapper {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 24px;
             list-style: none;
             padding: 0;
