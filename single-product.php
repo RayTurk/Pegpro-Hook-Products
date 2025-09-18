@@ -38,8 +38,8 @@ remove_action('woocommerce_single_product_summary', 'woocommerce_template_single
 // Add the short description after the title (priority 6, between title at 5 and price at 10)
 add_action('woocommerce_single_product_summary', 'woocommerce_template_single_excerpt', 6);
 
-// Add product details link after short description
-add_action('woocommerce_single_product_summary', 'custom_product_details_link', 7);
+// Add product details link after the price
+add_action('woocommerce_single_product_summary', 'custom_product_details_link', 11);
 
 // Remove breadcrumbs
 remove_action('woocommerce_before_main_content', 'woocommerce_breadcrumb', 20);
@@ -130,6 +130,11 @@ function custom_related_products_slider() {
         wp_reset_postdata();
 
         echo '</div>'; // close swiper-wrapper
+
+        // Add navigation buttons
+        echo '<div class="swiper-button-next"></div>';
+        echo '<div class="swiper-button-prev"></div>';
+
         echo '</div>'; // close swiper-container
         echo '</div>'; // close .related-products-slider
         echo '</section>';
@@ -144,6 +149,7 @@ get_header(); ?>
     <div id="content-area" class="clearfix">
       <div id="left-area">
 
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
         <style>
           footer .et_builder_inner_content,
@@ -1166,6 +1172,7 @@ get_header(); ?>
           @media (max-width: 768px) {
             .related-products-slider .swiper-container {
               overflow: hidden;
+              position: relative;
             }
 
             /* Swiper JS will set display: flex on this element */
@@ -1177,6 +1184,55 @@ get_header(); ?>
             .related-products-slider .swiper-slide {
               width: 100%; /* A single slide takes the full width */
               flex-shrink: 0; /* Prevent slide from shrinking */
+            }
+
+            .related-products-slider .swiper-button-next,
+            .related-products-slider .swiper-button-prev {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 40px;
+              height: 40px;
+              background-color: rgba(255, 255, 255, 0.9);
+              border-radius: 50%;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+              color: #333;
+              position: absolute;
+              top: 50%;
+              transform: translateY(-50%);
+              z-index: 10;
+              cursor: pointer;
+              transition: background-color 0.2s ease;
+            }
+
+            .related-products-slider .swiper-button-next:hover,
+            .related-products-slider .swiper-button-prev:hover {
+              background-color: #fff;
+            }
+
+            .related-products-slider .swiper-button-prev {
+              left: 10px;
+            }
+            .related-products-slider .swiper-button-next {
+              right: 10px;
+            }
+
+            /* Hide default Swiper icon and use Font Awesome */
+            .related-products-slider .swiper-button-next:after,
+            .related-products-slider .swiper-button-prev:after {
+              display: none;
+            }
+
+            .related-products-slider .swiper-button-prev::before,
+            .related-products-slider .swiper-button-next::before {
+              font-family: 'Font Awesome 6 Free';
+              font-weight: 900;
+            }
+            .related-products-slider .swiper-button-prev::before {
+              content: '\f053'; /* fa-chevron-left */
+            }
+            .related-products-slider .swiper-button-next::before {
+              content: '\f054'; /* fa-chevron-right */
             }
           }
         </style>
@@ -1316,7 +1372,7 @@ get_header(); ?>
             text.includes('straight') && text.includes('hook') && text.includes('size') ||
             text.includes('hook') && text.includes('shape'))) {
           if (isMultipack) {
-            stepLabel = 'Step 2: Select Desired Multipack Shape Combination';
+            stepLabel = 'step 2. select desired multipack shape combination';
           } else {
             stepLabel = 'Step 2: Select Desired Hook Shape';
           }
@@ -1409,6 +1465,10 @@ get_header(); ?>
             slidesPerView: 1,
             spaceBetween: 16,
             grabCursor: true,
+            navigation: {
+              nextEl: '.related-products-slider .swiper-button-next',
+              prevEl: '.related-products-slider .swiper-button-prev',
+            },
           });
         } else if (window.innerWidth >= 768 && relatedSlider) {
           // Destroy slider on larger screens
